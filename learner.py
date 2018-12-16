@@ -20,29 +20,10 @@ n hidden units - this is the core of the algorithm. since it's complicated (just
 1 output unit - to output the next lever
 """
 
-
 def focus(message):
     print('--' * 20)
     print(message)
     print('--' * 20)
-
-if __name__ == '__main__':  # Avoid defining flags when used as a library.
-    parser = argparse.ArgumentParser(
-        description='Builds a simple RNN'
-    )
-    parser.add_argument(
-        '--hidden_size', type=int, default=20,
-        help='dimension of the hidden vector in the RNN'
-    )
-    parser.add_argument(
-        '--layers', type=int, default=2,
-        help='number of layers in the RNN'
-    )
-    parser.add_argument(
-        '--debug', type=bool, default=True,
-        help='whether to print debug messages'
-    )
-    FLAGS = parser.parse_args()
 
 
 class SimpleRNN(nn.Module):
@@ -64,7 +45,7 @@ class SimpleRNN(nn.Module):
         t = self.timesteps
         return (torch.randn(layers, t, n), torch.randn(layers, t, n))
 
-    def forward(self, obs):
+    def forward(self, obs, debug=False):
         # we first embed the observation
         prep = self.embed(obs)
 
@@ -75,7 +56,7 @@ class SimpleRNN(nn.Module):
         actions = self.linear(out)
         action_softmax = F.softmax(actions, dim=2)
 
-        if FLAGS.debug:
+        if debug:
             focus("testing forward pass")
             print(prep)
             print(out)
@@ -97,16 +78,15 @@ def makeObservation(state, action, reward, done):
     return torch.tensor(v)
     
 def testSimpleRNN():
-    a = SimpleRNN(FLAGS.hidden_size, FLAGS.layers, timesteps=1)
+    a = SimpleRNN(20, 2)
 
     obs = makeObservation(1,1,1,1)
     a.forward(obs)
 
-    # if FLAGS.debug:
-    #     focus("parameters")
-    #     for name, param in a.named_parameters():
-    #         if param.requires_grad:
-    #             print(name, param.data.shape)
+    focus("parameters")
+    for name, param in a.named_parameters():
+        if param.requires_grad:
+            print(name, param.data.shape)
 
 if __name__ == "__main__":
     testSimpleRNN()

@@ -86,22 +86,21 @@ class SimpleRNN(nn.Module):
 
 
 def makeObservation(state, action, reward, done):
-    """generates a 1x3 vector
+    """generates a torch.tensor of size (batch_size, 1, dimension)
 
     action - 1 or 0
     reward - 1 or 0
     done - 1 or 0
     """
-    return np.reshape([action, reward, done], (1, 1, 3)).astype(np.float32)
+    v = [action, reward, done]
+    v = np.reshape(v, (1, 1, 3)).astype(np.float32)
+    return torch.tensor(v)
     
 def testSimpleRNN():
     a = SimpleRNN(FLAGS.hidden_size, FLAGS.layers, timesteps=1)
 
-    obs = torch.tensor(makeObservation(1,1,1,1))
+    obs = makeObservation(1,1,1,1)
     a.forward(obs)
-
-    # loss_function = nn.NLLLoss()
-    # optimizer = optim.SGD(a.parameters(), lr=0.1)
 
     # if FLAGS.debug:
     #     focus("parameters")

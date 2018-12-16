@@ -6,6 +6,7 @@ import torch.nn as nn
 from torch.nn import functional as F
 from torch import optim
 
+import numpy as np
 from torch.autograd import Variable
 import argparse
 
@@ -34,18 +35,18 @@ if __name__ == '__main__':  # Avoid defining flags when used as a library.
         help='dimension of the hidden vector in the RNN'
     )
     parser.add_argument(
-        '--layers', type=int, default=1,
+        '--layers', type=int, default=2,
         help='number of layers in the RNN'
     )
     parser.add_argument(
-        '--debug', type=bool, default=False,
+        '--debug', type=bool, default=True,
         help='whether to print debug messages'
     )
     FLAGS = parser.parse_args()
 
 
 class SimpleRNN(nn.Module):
-    def __init__(self, hidden_size=20, layers=1, input_size=3, output_size=2, timesteps=1):
+    def __init__(self, hidden_size, layers, input_size=3, output_size=2, timesteps=1):
         super(SimpleRNN, self).__init__()
         self.timesteps = timesteps
         self.hidden_size = hidden_size
@@ -72,7 +73,7 @@ class SimpleRNN(nn.Module):
 
         # finally, the output is passed through a fully connected layer, followed by a softmax
         actions = self.linear(out)
-        action_softmax = F.log_softmax(actions, dim=2)
+        action_softmax = F.softmax(actions, dim=2)
 
         if FLAGS.debug:
             focus("testing forward pass")
@@ -82,30 +83,31 @@ class SimpleRNN(nn.Module):
             print(action_softmax)
 
         return action_softmax
-        
 
-def generateSampleData(timesteps, batch_size):
-    """Generate some dummy data
-    
-    the `obs` will have a shape of (batch_size, n_time, n_dimension)
+
+def makeObservation(state, action, reward, done):
+    """generates a 1x3 vector
+
+    action - 1 or 0
+    reward - 1 or 0
+    done - 1 or 0
     """
-    episode = [[0.0] * timesteps] # timesteps x 1
-    obs = torch.tensor([episode for i in range(batch_size)])
-    return obs
-
+    return np.reshape([action, reward, done], (1, 1, 3)).astype(np.float32)
+    
 def testSimpleRNN():
-    obs = generateSampleData(timesteps=3,batch_size=1)
     a = SimpleRNN(FLAGS.hidden_size, FLAGS.layers, timesteps=1)
+
+    obs = torch.tensor(makeObservation(1,1,1,1))
     a.forward(obs)
 
-    loss_function = nn.NLLLoss()
-    optimizer = optim.SGD(a.parameters(), lr=0.1)
+    # loss_function = nn.NLLLoss()
+    # optimizer = optim.SGD(a.parameters(), lr=0.1)
 
-    if FLAGS.debug:
-        focus("parameters")
-        for name, param in a.named_parameters():
-            if param.requires_grad:
-                print(name, param.data.shape)
+    # if FLAGS.debug:
+    #     focus("parameters")
+    #     for name, param in a.named_parameters():
+    #         if param.requires_grad:
+    #             print(name, param.data.shape)
 
 if __name__ == "__main__":
     testSimpleRNN()

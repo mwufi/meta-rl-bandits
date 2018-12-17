@@ -99,11 +99,12 @@ def main(args):
     fantastic = EpisodeRecorder()
 
     for i in range(FLAGS.n_episodes // 2):
-        start_time = time.time()
 
         # reset the hidden state after every 3 environments
         s.reset_hidden()
-        for y in range(2):
+        for y in range(3):
+            start_time = time.time()
+            
             # reset the environment
             action = 0
             reward = 0

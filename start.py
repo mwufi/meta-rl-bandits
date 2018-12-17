@@ -99,11 +99,12 @@ def main(args):
     optimizer = optim.SGD(s.parameters(), lr = 0.01, momentum=0.9)
     fantastic = EpisodeRecorder()
 
-    for i in range(FLAGS.n_episodes // 2):
+    K = 1
+    for i in range(FLAGS.n_episodes // K):
 
-        # reset the hidden state after every 3 environments
+        # reset the hidden state after every K environments
         s.reset_hidden()
-        for y in range(3):
+        for y in range(K):
             start_time = time.time()
             
             # reset the environment
@@ -140,7 +141,7 @@ def main(args):
             fantastic.record("time", time.time() - start_time)
 
             # is it learning?
-            current_epoch = 3*i +y
+            current_epoch = K*i +y
             if current_epoch % FLAGS.display_epochs == 0:
                 display = ""
                 display += "Episode {}, elapsed time: {:.0f} (avg {:.4f}), ".format(current_epoch, np.sum(fantastic.get("time")), np.mean(fantastic.get("time")[-FLAGS.display_epochs:]))

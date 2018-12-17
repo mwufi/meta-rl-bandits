@@ -14,6 +14,7 @@ import random
 import numpy as np
 import torch
 import torch.optim as optim
+from torch.distributions.categorical import Categorical
 
 from bandit import BanditProblem
 from learner import SimpleRNN, makeObservation
@@ -23,7 +24,7 @@ if __name__ == '__main__':  # Avoid defining flags when used as a library.
         description='Bandit problem for meta-learning agents'
     )
     parser.add_argument(
-        '--n_episodes', type=int, default=2000,
+        '--n_episodes', type=int, default=20000,
         help='number of episodes (bandit problems) to train for'
     )
     parser.add_argument(
@@ -90,7 +91,7 @@ class EpisodeRecorder:
         """
         return self.data[thing]
 
-
+       
 def main(args):
     
     # create a meta-learner
@@ -121,7 +122,8 @@ def main(args):
 
                 # choose the max action
                 # (this is the part that isn't differentiable!)
-                action = int(torch.argmax(probs, dim=2))
+                di = Categorical(probs)
+                action = di.sample()
                 epi.record("action", action)
 
                 # update the last reward
@@ -132,14 +134,19 @@ def main(args):
             step(optimizer, epi)
 
             # before we destroy the environment
+            fantastic.record("action_mean", np.mean(epi.get("action")))
+            fantastic.record("action_var", np.std(epi.get("action")))
             fantastic.record("average_reward", np.mean(epi.get("reward")))
             fantastic.record("time", time.time() - start_time)
-        
+
             # is it learning?
             current_epoch = 3*i +y
             if current_epoch % FLAGS.display_epochs == 0:
-                print("Episode {}, elapsed time: {} (avg {}), current_reward: {}".format(current_epoch, np.sum(fantastic.get("time")), np.mean(fantastic.get("time")[-FLAGS.display_epochs:]), np.mean(fantastic.get("average_reward")[-FLAGS.display_epochs:])))
-
+                display = ""
+                display += "Episode {}, elapsed time: {:.0f} (avg {:.4f}), ".format(current_epoch, np.sum(fantastic.get("time")), np.mean(fantastic.get("time")[-FLAGS.display_epochs:]))
+                display += "current_reward: {:.4f} ".format(np.mean(fantastic.get("average_reward")[-FLAGS.display_epochs:]))
+                display += "Action mean: {} Action std: {} ".format(fantastic.get("action_mean")[-1:], fantastic.get("action_var")[-1:])
+                print(display)
 
 if __name__ == '__main__':
     main(sys.argv)

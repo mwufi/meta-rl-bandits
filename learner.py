@@ -58,7 +58,7 @@ class SimpleRNN(nn.Module):
 
         # finally, the output is passed through a fully connected layer, followed by a softmax
         actions = self.linear(out)
-        action_softmax = F.softmax(actions, dim=2)
+        action_softmax = F.softmax(actions, dim=2).view(-1)
 
         if debug:
             focus("testing forward pass")

@@ -37,6 +37,10 @@ class SimpleRNN(nn.Module):
         self.rnn = nn.LSTM(hidden_size, hidden_size, layers, dropout=0.05)
         self.linear = nn.Linear(hidden_size, output_size)
 
+        self.reset_hidden()
+
+
+    def reset_hidden(self):
         self.hidden = self.init_hidden()
 
     def init_hidden(self):
@@ -69,7 +73,7 @@ class SimpleRNN(nn.Module):
 def makeObservation(state, action, reward, done):
     """generates a torch.tensor of size (batch_size, 1, dimension)
 
-    action - 1 or 0
+    action - for a 2-armed bandit, it is 1 or 0
     reward - 1 or 0
     done - 1 or 0
     """

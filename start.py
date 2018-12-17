@@ -23,6 +23,10 @@ if __name__ == '__main__':  # Avoid defining flags when used as a library.
         description='Bandit problem for meta-learning agents'
     )
     parser.add_argument(
+        '--n_episodes', type=int, default=2000,
+        help='number of episodes (bandit problems) to train for'
+    )
+    parser.add_argument(
         '--sequence_length', type=int, default=100,
         help='length of a trial (number of episodes before changing probabilities)'
     )
@@ -94,12 +98,12 @@ def main(args):
     optimizer = optim.SGD(s.parameters(), lr = 0.01, momentum=0.9)
     fantastic = EpisodeRecorder()
 
-    for i in range(700):
+    for i in range(FLAGS.n_episodes // 2):
         start_time = time.time()
 
         # reset the hidden state after every 3 environments
         s.reset_hidden()
-        for y in range(3):
+        for y in range(2):
             # reset the environment
             action = 0
             reward = 0
@@ -125,7 +129,6 @@ def main(args):
 
             # upgrade our neural network
             step(optimizer, epi)
-            del epi
 
             # before we destroy the environment
             fantastic.record("average_reward", np.mean(epi.get("reward")))
@@ -134,7 +137,7 @@ def main(args):
             # is it learning?
             current_epoch = 3*i +y
             if current_epoch % FLAGS.display_epochs == 0:
-                print("Episode {}, avg time: {}, current_reward: {}".format(current_epoch, np.mean(fantastic.get("time")[-FLAGS.display_epochs:]), np.mean(fantastic.get("average_reward")[-10:])))
+                print("Episode {}, elapsed time: {} (avg {}), current_reward: {}".format(current_epoch, np.sum(fantastic.get("time")), np.mean(fantastic.get("time")[-FLAGS.display_epochs:]), np.mean(fantastic.get("average_reward")[-FLAGS.display_epochs:])))
 
 
 if __name__ == '__main__':

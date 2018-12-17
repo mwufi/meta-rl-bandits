@@ -144,9 +144,9 @@ def main(args):
             current_epoch = K*i +y
             if current_epoch % FLAGS.display_epochs == 0:
                 display = ""
-                display += "Episode {}, elapsed time: {:.0f} (avg {:.4f}), ".format(current_epoch, np.sum(fantastic.get("time")), np.mean(fantastic.get("time")[-FLAGS.display_epochs:]))
-                display += "current_reward: {:.4f} ".format(np.mean(fantastic.get("average_reward")[-FLAGS.display_epochs:]))
-                display += "Action mean: {} Action std: {} ".format(fantastic.get("action_mean")[-1:], fantastic.get("action_var")[-1:])
+                display += "Episode {}, Time (elapsed {:.0f}, {:.4f}s/episode), ".format(current_epoch, np.sum(fantastic.get("time")), np.mean(fantastic.get("time")[-FLAGS.display_epochs:]))
+                display += "Reward (avg {:.4f}) ".format(np.mean(fantastic.get("average_reward")[-FLAGS.display_epochs:]))
+                display += "Actions (std.dev {:.4f}) ".format(fantastic.get("action_var")[-1])
                 print(display)
 
 if __name__ == '__main__':
